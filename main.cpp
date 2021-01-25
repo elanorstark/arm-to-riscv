@@ -8,6 +8,7 @@
 #include <locale>
 
 #include "Value.h"
+#include "Instruction.h"
 
 class Line {
 public:
@@ -28,6 +29,8 @@ static inline void ltrim(std::string &s) {
 
 int main() {
 
+    // create the registers
+    Register::set_registers();
     Register::registers[0].set(1);
     int sp; // stack pointer
     int pc; // program counter
@@ -55,7 +58,12 @@ int main() {
         std::cout << line.mnc << ": " << line.lineText << "\n";
     }
 
-// Close the file
+    Instruction** instructions = new Instruction*[1];
+    instructions[0] = new Add(&Register::registers[0],new Const(2),new Const(3));
+    instructions[0]->run();
+    std::cout << Register::registers[0].get();
+
+    // close the file
     CodeFile.close();
     return 0;
 }

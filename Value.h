@@ -11,11 +11,15 @@ public:
 
 class Register: public Value {
 public:
+    Register();
+
     uint64_t contents{0};
 
     void set(uint64_t value) override;
 
     uint64_t get();
+
+    static void set_registers();
 
     static Register registers[31];
 };

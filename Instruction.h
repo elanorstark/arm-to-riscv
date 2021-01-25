@@ -25,5 +25,12 @@ public:
 
 };
 
+class Sub: public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run();
+
+};
+
 
 #endif //CODE_INSTRUCTION_H
