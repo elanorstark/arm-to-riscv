@@ -1,0 +1,5 @@
+simple_add:
+        mov     w0, 1
+        mov     w1, 2
+        add     w0, w1, w0
+        ret
