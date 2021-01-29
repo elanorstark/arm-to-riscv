@@ -6,7 +6,7 @@
 class Value {
 public:
     virtual void set(uint64_t) = 0;
-    virtual uint64_t get(void) = 0;
+    virtual uint64_t get() = 0;
 };
 
 class Register: public Value {
@@ -19,9 +19,13 @@ public:
 
     uint64_t get();
 
-    static void set_registers();
+//    static void set_registers();
 
     static Register registers[31];
+
+    static Register pc;
+
+    static Register sp;
 };
 
 class Const: public Value {

@@ -16,13 +16,17 @@ Register::Register() {
 
 Register Register::registers[31];
 
-void Register::set_registers() {
-    for (int i = 0; i < 31; i++) {
-        Register::registers[i] = Register();
-        // std::cout << Register::registers[i].get();
-    }
-    // std::cout << "\n";
-}
+Register pc = Register();
+
+Register sp = Register();
+
+//void Register::set_registers() {
+//    for (int i = 0; i < 31; i++) {
+//        Register::registers[i] = Register();
+//        // std::cout << Register::registers[i].get();
+//    }
+//    // std::cout << "\n";
+//}
 
 Const::Const(uint64_t value) {
     this->value = value;

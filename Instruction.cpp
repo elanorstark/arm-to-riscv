@@ -1,5 +1,4 @@
 #include "Instruction.h"
-#include "Value.h"
 
 LikeAdd::LikeAdd(Register *d, Value *op1, Value *op2) {
     this->destination = d;
