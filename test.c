@@ -81,9 +81,7 @@ int main(void)
             printf("%s\t%s\n", insn[j].mnemonic, insn[j].op_str);
 
             // Print all registers accessed by this instruction.
-            if (cs_regs_access(handle, &insn[j],
-                               regs_read, &read_count,
-                               regs_write, &write_count) == 0) {
+            if (cs_regs_access(handle, &insn[j], regs_read, &read_count, regs_write, &write_count) == 0) {
                 if (read_count > 0) {
                     printf("\n\tRegisters read:");
                     for (i = 0; i < read_count; i++) {

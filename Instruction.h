@@ -32,5 +32,23 @@ public:
 
 };
 
+class LikeMov: public Instruction {
+public:
+    Register* destination;
+    Value* op1;
+
+    LikeMov(Register* d, Value* op1);
+};
+
+class Mov: public LikeMov {
+    using LikeMov::LikeMov;
+public:
+    void run();
+};
+
+class Ret: public Instruction {
+public:
+    void run();
+};
 
 #endif //CODE_INSTRUCTION_H
