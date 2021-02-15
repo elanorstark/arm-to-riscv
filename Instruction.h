@@ -14,10 +14,10 @@ public:
 class LikeAdd: public Instruction {
 public:
     Register* destination;
-    Value* op1;
+    Register* op1;
     Value* op2;
 
-    LikeAdd(Register* d, Value* op1, Value* op2);
+    LikeAdd(Register* d, Register* op1, Value* op2);
 };
 
 class Add: public LikeAdd {
@@ -32,6 +32,18 @@ class Sub: public LikeAdd {
 public:
     void run();
 
+};
+
+class Lsl: public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run();
+};
+
+class Lsr: public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run();
 };
 
 class LikeMov: public Instruction {

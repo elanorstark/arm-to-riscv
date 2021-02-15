@@ -19,7 +19,8 @@ extern "C" {
 
 // extern "C" size_t CAPSTONE_API cs_disasm(csh ud, const uint8_t *buffer, size_t size, uint64_t offset, size_t count, cs_insn **insn);
 
-#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x20\x00\x00\x0b\xc0\x03\x5f\xd6"
+//#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x20\x00\x00\x0b\xc0\x03\x5f\xd6"
+#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x21\x00\x00\x0b\x00\x20\xc1\x1a\xc0\x03\x5f\xd6"
 
 class Line {
 public:
@@ -85,11 +86,19 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
     std::cout << this_insn.mnemonic << "\n";
     if (strcmp(this_insn.mnemonic, "add") == 0) {
         return new Add(create_register(operands[0], handle),
-                       create_operand(operands[1], handle),
+                       create_register(operands[1], handle),
                        create_operand(operands[2], handle));
     } else if (strcmp(this_insn.mnemonic, "sub") == 0) {
         return new Sub(create_register(operands[0], handle),
-                       create_operand(operands[1], handle),
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle));
+    } else if (strcmp(this_insn.mnemonic, "lsl") == 0) {
+        return new Lsl(create_register(operands[0], handle),
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle));
+    } else if (strcmp(this_insn.mnemonic, "lsr") == 0) {
+        return new Lsr(create_register(operands[0], handle),
+                       create_register(operands[1], handle),
                        create_operand(operands[2], handle));
     } else if (strcmp(this_insn.mnemonic, "movz") == 0) {
         return new Mov(create_register(operands[0], handle),

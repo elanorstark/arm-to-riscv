@@ -2,7 +2,7 @@
 #include "Instruction.h"
 
 // LikeAdd
-LikeAdd::LikeAdd(Register *d, Value *op1, Value *op2) {
+LikeAdd::LikeAdd(Register *d, Register *op1, Value *op2) {
     this->destination = d;
     this->op1 = op1;
     this->op2 = op2;
@@ -47,4 +47,20 @@ bool Instruction::debug_mode = false;
 
 void Instruction::debug_mode_set(bool mode) {
     Instruction::debug_mode = mode;
+}
+
+void Lsl::run() {
+    if (Instruction::debug_mode) {
+        std::cout << "Running: lsl " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+                  << "\n";
+    }
+    this->destination->set((this->op1->get()) << (this->op2->get())); // TODO: check behaviour when op2 is register
+}
+
+void Lsr::run() {
+    if (Instruction::debug_mode) {
+        std::cout << "Running: lsr " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+                  << "\n";
+    }
+    this->destination->set((this->op1->get()) >> (this->op2->get())); // TODO: check behaviour when op2 is register
 }
