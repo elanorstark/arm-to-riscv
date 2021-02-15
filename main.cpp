@@ -140,6 +140,8 @@ int main() {
 
     Instruction **instructions = new Instruction *[count];
 
+    Instruction::debug_mode_set(true);
+
     for (int i = 0; i < count; i++) {
         cs_regs_access(handle, &insn[i], regs_read, &read_count, regs_write, &write_count);
         std::string mnc = insn[i].mnemonic;
@@ -147,7 +149,7 @@ int main() {
         instructions[i]->run();
     }
 
-    std::cout << "\nresult (w0 value): " << Register::registers[0].get();
+    std::cout << "\nresult (w0, w1, w2 value): " << Register::registers[0].get() << " " << Register::registers[1].get() << " " << Register::registers[2].get();
 
 /*    // close the file
     CodeFile.close();*/

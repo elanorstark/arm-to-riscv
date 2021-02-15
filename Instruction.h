@@ -7,6 +7,8 @@
 class Instruction {
 public:
     virtual void run() = 0;
+    static bool debug_mode;
+    static void debug_mode_set(bool mode);
 };
 
 class LikeAdd: public Instruction {
