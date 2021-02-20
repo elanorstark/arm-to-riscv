@@ -29,9 +29,9 @@ public:
     static Register sp;
 };
 
-class SPSR_Register: public Value {
+class Process_State: public Value {
 public:
-    static std::map<std::string, SPSR_Register*> names;
+    static std::map<std::string, Process_State*> names;
 
     uint64_t value;
 
@@ -39,23 +39,23 @@ public:
 
     void set(uint64_t);
 
-    SPSR_Register();
+    Process_State();
 
     static uint64_t get_by_name(std::string name);
 
     static void set_by_name(std::string name, uint64_t value);
 
-    static SPSR_Register n;
-    static SPSR_Register z;
-    static SPSR_Register c;
-    static SPSR_Register v;
-    static SPSR_Register ss;
-    static SPSR_Register il;
-    static SPSR_Register d;
-    static SPSR_Register a;
-    static SPSR_Register i;
-    static SPSR_Register f;
-    static SPSR_Register m;
+    static Process_State n;
+    static Process_State z;
+    static Process_State c;
+    static Process_State v;
+    static Process_State ss;
+    static Process_State il;
+    static Process_State d;
+    static Process_State a;
+    static Process_State i;
+    static Process_State f;
+    static Process_State m;
 
 };
 

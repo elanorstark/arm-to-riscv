@@ -40,48 +40,48 @@ uint64_t Const::get() {
     return this->value;
 }
 
-SPSR_Register SPSR_Register::z = SPSR_Register();
-SPSR_Register SPSR_Register::n = SPSR_Register();
-SPSR_Register SPSR_Register::c = SPSR_Register();
-SPSR_Register SPSR_Register::v = SPSR_Register();
-SPSR_Register SPSR_Register::ss = SPSR_Register();
-SPSR_Register SPSR_Register::il = SPSR_Register();
-SPSR_Register SPSR_Register::d = SPSR_Register();
-SPSR_Register SPSR_Register::a = SPSR_Register();
-SPSR_Register SPSR_Register::i = SPSR_Register();
-SPSR_Register SPSR_Register::f = SPSR_Register();
-SPSR_Register SPSR_Register::m = SPSR_Register();
+Process_State Process_State::z = Process_State();
+Process_State Process_State::n = Process_State();
+Process_State Process_State::c = Process_State();
+Process_State Process_State::v = Process_State();
+Process_State Process_State::ss = Process_State();
+Process_State Process_State::il = Process_State();
+Process_State Process_State::d = Process_State();
+Process_State Process_State::a = Process_State();
+Process_State Process_State::i = Process_State();
+Process_State Process_State::f = Process_State();
+Process_State Process_State::m = Process_State();
 
-std::map<std::string, SPSR_Register*> SPSR_Register::names { {"n", &SPSR_Register::n},
-                                                             {"c", &SPSR_Register::c},
-                                                             {"z", &SPSR_Register::z},
-                                                             {"v", &SPSR_Register::v},
-                                                             {"ss", &SPSR_Register::ss},
-                                                             {"il", &SPSR_Register::il},
-                                                            {"d", &SPSR_Register::d},
-                                                             {"a", &SPSR_Register::a},
-                                                             {"i", &SPSR_Register::i},
-                                                             {"f", &SPSR_Register::f},
-                                                             {"m", &SPSR_Register::m}};
+std::map<std::string, Process_State*> Process_State::names { {"n", &Process_State::n},
+                                                             {"c", &Process_State::c},
+                                                             {"z", &Process_State::z},
+                                                             {"v", &Process_State::v},
+                                                             {"ss", &Process_State::ss},
+                                                             {"il", &Process_State::il},
+                                                            {"d", &Process_State::d},
+                                                             {"a", &Process_State::a},
+                                                             {"i", &Process_State::i},
+                                                             {"f", &Process_State::f},
+                                                             {"m", &Process_State::m}};
 
-uint64_t SPSR_Register::get() {
+uint64_t Process_State::get() {
     return this->value;
 }
 
 
-void SPSR_Register::set_by_name(std::string name, uint64_t value) {
+void Process_State::set_by_name(std::string name, uint64_t value) {
     uint8_t one_bit = 1 & value;
-    SPSR_Register::names[name]->set(one_bit);
+    Process_State::names[name]->set(one_bit);
 }
 
-uint64_t SPSR_Register::get_by_name(std::string name){
-    return SPSR_Register::names[name]->get();
+uint64_t Process_State::get_by_name(std::string name){
+    return Process_State::names[name]->get();
 }
 
-SPSR_Register::SPSR_Register() {
+Process_State::Process_State() {
     this->value = 0;
 }
 
-void SPSR_Register::set(uint64_t value) {
+void Process_State::set(uint64_t value) {
     this->value = value;
 }
