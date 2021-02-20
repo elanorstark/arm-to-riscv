@@ -40,13 +40,25 @@ uint64_t Const::get() {
     return this->value;
 }
 
+SPSR_Register SPSR_Register::z = SPSR_Register();
+SPSR_Register SPSR_Register::n = SPSR_Register();
+SPSR_Register SPSR_Register::c = SPSR_Register();
+SPSR_Register SPSR_Register::v = SPSR_Register();
+SPSR_Register SPSR_Register::ss = SPSR_Register();
+SPSR_Register SPSR_Register::il = SPSR_Register();
+SPSR_Register SPSR_Register::d = SPSR_Register();
+SPSR_Register SPSR_Register::a = SPSR_Register();
+SPSR_Register SPSR_Register::i = SPSR_Register();
+SPSR_Register SPSR_Register::f = SPSR_Register();
+SPSR_Register SPSR_Register::m = SPSR_Register();
+
 std::map<std::string, SPSR_Register*> SPSR_Register::names { {"n", &SPSR_Register::n},
                                                              {"c", &SPSR_Register::c},
                                                              {"z", &SPSR_Register::z},
                                                              {"v", &SPSR_Register::v},
                                                              {"ss", &SPSR_Register::ss},
                                                              {"il", &SPSR_Register::il},
-                                                             {"d", &SPSR_Register::d},
+                                                            {"d", &SPSR_Register::d},
                                                              {"a", &SPSR_Register::a},
                                                              {"i", &SPSR_Register::i},
                                                              {"f", &SPSR_Register::f},
