@@ -52,15 +52,19 @@ void Instruction::debug_mode_set(bool mode) {
 void Lsl::run() {
     if (Instruction::debug_mode) {
         std::cout << "Running: lsl " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
-                  << "\n";
+                  << " divide by " << (typeid(*op2) == typeid(*op1) ? 64 : 1) << " "
+                  << (this->op2->get()) / (typeid(*op2) == typeid(*op1) ? 64 : 1) << "\n";
     }
-    this->destination->set((this->op1->get()) << (this->op2->get())); // TODO: check behaviour when op2 is register
+    this->destination->set((this->op1->get()) << ((this->op2->get()) % (typeid(*op2) == typeid(*op1) ? 64 : 1)));
+    // TODO: check behaviour for registers
 }
 
 void Lsr::run() {
     if (Instruction::debug_mode) {
         std::cout << "Running: lsr " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
-                  << "\n";
+                  << " divide by " << (typeid(*op2) == typeid(*op1) ? 64 : 1) << " "
+                  << (this->op2->get()) / (typeid(*op2) == typeid(*op1) ? 64 : 1) << "\n";
     }
-    this->destination->set((this->op1->get()) >> (this->op2->get())); // TODO: check behaviour when op2 is register
+    this->destination->set((this->op1->get()) >> ((this->op2->get()) % (typeid(op2) == typeid(op1) ? 64 : 1)));
+    // TODO: check behaviour for registers
 }
