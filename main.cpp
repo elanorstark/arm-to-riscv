@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <cinttypes>
+#include <cmath>
 
 #include "Value.h"
 #include "Instruction.h"
@@ -20,7 +21,8 @@ extern "C" {
 // extern "C" size_t CAPSTONE_API cs_disasm(csh ud, const uint8_t *buffer, size_t size, uint64_t offset, size_t count, cs_insn **insn);
 
 //#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x20\x00\x00\x0b\xc0\x03\x5f\xd6"
-#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x21\x00\x00\x0b\x00\x20\xc1\x1a\xc0\x03\x5f\xd6"
+//#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x21\x00\x00\x0b\x00\x20\xc1\x1a\xc0\x03\x5f\xd6"
+#define CODE "\xe0\xff\x9f\x52\xe1\xff\x9f\x52\x00\x00\x01\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x04\x00\x31"
 
 class Line {
 public:
@@ -84,25 +86,34 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
     cs_arm64_op *operands = detail->arm64.operands;
 
     std::cout << this_insn.mnemonic << "\n";
-    if (strcmp(this_insn.mnemonic, "add") == 0) {
+    if (strcmp(this_insn.mnemonic, "add") == 0 || strcmp(this_insn.mnemonic, "adds") == 0) {
         return new Add(create_register(operands[0], handle),
                        create_register(operands[1], handle),
-                       create_operand(operands[2], handle));
-    } else if (strcmp(this_insn.mnemonic, "sub") == 0) {
+                       create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "adds") == 0);
+
+    } else if (strcmp(this_insn.mnemonic, "sub") == 0 || strcmp(this_insn.mnemonic, "subs") == 0) {
         return new Sub(create_register(operands[0], handle),
                        create_register(operands[1], handle),
-                       create_operand(operands[2], handle));
+                       create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "subs") == 0);
+
+    } else if (strcmp(this_insn.mnemonic, "cmp") == 0) {
+        return new Sub(&EmptyRegister::emptyRegister, create_register(operands[0], handle),
+                       create_operand(operands[1], handle), true);
+
     } else if (strcmp(this_insn.mnemonic, "lsl") == 0) {
         return new Lsl(create_register(operands[0], handle),
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle));
+
     } else if (strcmp(this_insn.mnemonic, "lsr") == 0) {
         return new Lsr(create_register(operands[0], handle),
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle));
+
     } else if (strcmp(this_insn.mnemonic, "movz") == 0) {
         return new Mov(create_register(operands[0], handle),
                        create_operand(operands[1], handle));
+
     } else {
         return new Ret(); // currently using for any instructions that haven't been added
     }
@@ -117,6 +128,10 @@ int main() {
     uint8_t read_count, write_count;
 
     disassemble_cs(&handle, &insn, &count); // disassembler
+    uint8_t d = 8;
+    uint8_t g = pow(2, 8) - 1;
+    uint8_t f = d + g;
+    std::cout << ": " << unsigned(f) << "\n";
 
 /*    std::cout << insn[0].mnemonic << "\n";
     int details_result = cs_regs_access(handle, &insn[0], regs_read, &read_count, regs_write, &write_count);
@@ -151,14 +166,28 @@ int main() {
 
     Instruction::debug_mode_set(true);
 
+    Register::pc.set(0);
+    std::cout << "PC" << Register::pc.get() << "\n";
+
+
     for (int i = 0; i < count; i++) {
         cs_regs_access(handle, &insn[i], regs_read, &read_count, regs_write, &write_count);
         std::string mnc = insn[i].mnemonic;
         instructions[i] = create_instruction(insn[i], i, regs_read, &handle);
-        instructions[i]->run();
+//        instructions[i]->run();
     }
 
-    std::cout << "\nresult (w0, w1, w2 value): " << Register::registers[0].get() << " " << Register::registers[1].get() << " " << Register::registers[2].get();
+    int oldPc;
+
+    while (Register::pc.get() / 4 < count - 1) {
+        oldPc = Register::pc.get();
+        std::cout << oldPc;
+        Register::pc.set(oldPc + 4);
+        instructions[oldPc / 4]->run();
+    }
+
+    std::cout << "\nresult (w0, w1, w2 value): " << Register::registers[0].get() << " " << Register::registers[1].get()
+              << " " << Register::registers[2].get();
 
 /*    // close the file
     CodeFile.close();*/
