@@ -70,6 +70,15 @@ void Sub::run() {
     this->destination->set(result);
 }
 
+void Mul::run() {
+    if (Instruction::debug_mode) {
+        std::cout << "Running: mul " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+                  << "\n";
+    }
+
+    this->destination->set(this->op1->get() * this->op2->get()); // TODO: check
+}
+
 // LikeMov
 LikeMov::LikeMov(Register *d, Value *op1) {
     this->destination = d;
@@ -117,11 +126,12 @@ void Lsr::run() {
 
 void Branch::run() {
     if (condition()) {
-//        Register::pc.set(destination);
+        std::cout << "Changing pc value from " << Register::pc.contents << " to " << destination->get() << "\n";
+        Register::pc.set(destination->get());
     }
 }
 
-Branch::Branch(int destination) {
+Branch::Branch(Value *destination) {
     this->destination = destination;
 }
 
@@ -137,11 +147,11 @@ bool Bne::condition() {
     return ProcessState::z.get() == 0;
 }
 
-bool Bcs::condition() {
+bool Bhs::condition() {
     return ProcessState::c.get() == 1;
 }
 
-bool Bcc::condition() {
+bool Blo::condition() {
     return ProcessState::c.get() == 0;
 }
 
@@ -190,5 +200,9 @@ bool Bal::condition() {
 }
 
 bool Bnv::condition() {
+    return true;
+}
+
+bool B::condition() {
     return true;
 }

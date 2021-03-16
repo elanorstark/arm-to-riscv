@@ -28,7 +28,6 @@ class Add : public LikeAdd {
     using LikeAdd::LikeAdd;
 public:
     void run() override;
-
 };
 
 class Sub : public LikeAdd {
@@ -36,6 +35,12 @@ class Sub : public LikeAdd {
 public:
     void run() override;
 
+};
+
+class Mul :  public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run() override;
 };
 
 class Lsl : public LikeAdd {
@@ -71,9 +76,9 @@ public:
 
 class Branch : public Instruction {
 public:
-    explicit Branch(int destination);
+    explicit Branch(Value *destination);
 
-    int destination;
+    Value *destination;
 
     void run() override;
     virtual bool condition();
@@ -91,13 +96,13 @@ public:
     bool condition() override;
 };
 
-class Bcs : public Branch {
+class Bhs : public Branch {
     using Branch::Branch;
 public:
     bool condition() override;
 };
 
-class Bcc : public Branch {
+class Blo : public Branch {
     using Branch::Branch;
 public:
     bool condition() override;
@@ -170,6 +175,12 @@ public:
 };
 
 class Bnv : public Branch {
+    using Branch::Branch;
+public:
+    bool condition() override;
+};
+
+class B : public Branch {
     using Branch::Branch;
 public:
     bool condition() override;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -10,9 +11,9 @@
 #include <cstdio>
 #include <cinttypes>
 #include <cmath>
-
 #include "Value.h"
 #include "Instruction.h"
+#include "elf_read.h"
 
 extern "C" {
 #include "capstone/include/capstone/capstone.h"
@@ -22,21 +23,13 @@ extern "C" {
 
 //#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x20\x00\x00\x0b\xc0\x03\x5f\xd6"
 //#define CODE "\x20\x00\x80\x52\x41\x00\x80\x52\x21\x00\x00\x0b\x00\x20\xc1\x1a\xc0\x03\x5f\xd6"
-#define CODE "\xe0\xff\x9f\x52\xe1\xff\x9f\x52\x00\x00\x01\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x04\x00\x31"
+//#define CODE "\xe0\xff\x9f\x52\xe1\xff\x9f\x52\x00\x00\x01\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x00\x00\x2b\x00\x04\x00\x31"
+//#define CODE "\x00\x00\x80\x52\x41\x01\x80\x52\x00\x00\x01\x0b\x21\x04\x00\x51\x3f\x00\x00\x71\x40\x00\x00\x54\xfc\xff\xff\x17\xc0\x03\x5f\xd6"
 
-class Line {
-public:
-    std::string mnc;  // Mnemonic
-    std::string lineText; // Text read from file
-
-    Line(std::string lineText, std::string mnc) {
-        this->lineText = lineText;
-        this->mnc = mnc;
-    }
-};
 
 int disassemble_cs(csh *handle, cs_insn **insn,
-                   size_t *count) { //, cs_regs *regs_red, cs_regs *regs_write, uint8_t *red_count, uint8_t *write_count) {
+                   size_t *count,
+                   elf_read &reader) { //, cs_regs *regs_red, cs_regs *regs_write, uint8_t *red_count, uint8_t *write_count) {
 
     size_t j;
 
@@ -45,14 +38,14 @@ int disassemble_cs(csh *handle, cs_insn **insn,
 
     cs_option(*handle, CS_OPT_DETAIL, CS_OPT_ON); // slower but more detail
 
-    *count = cs_disasm(*handle, reinterpret_cast<const uint8_t *>(CODE), sizeof(CODE) - 1, 0x1000, 0, insn);
-
+    *count = cs_disasm(*handle, reinterpret_cast<const uint8_t *>(reader.data), reader.length, 0x000, 0,
+                       insn); // might need to be reader.length - 1
 
     // testing - print assembly instructions
     if (*count > 0) {
         for (j = 0; j < *count; j++) {
             // Print assembly
-//            printf("%X:\t%s\t%s\n", 0x1000+j, (*insn)[j].mnemonic, (*insn)[j].op_str);
+            printf("%X:\t%s\t%s\n", j*4, (*insn)[j].mnemonic, (*insn)[j].op_str);
         }
 
     } else
@@ -61,13 +54,14 @@ int disassemble_cs(csh *handle, cs_insn **insn,
     return 0;
 }
 
-Register *create_register(cs_arm64_op &operand, csh *handle) {
+Register *create_register(cs_arm64_op &operand, const csh *handle) {
     if (operand.type == ARM64_OP_REG) {
         std::string reg_name = cs_reg_name(*handle, operand.reg);
         int reg_num = std::stoi(reg_name.substr(1, -1));
         return &Register::registers[reg_num];
     } else {
-        throw std::exception("Operand isn't register");
+        std::cout << "Operand isn't register: " << operand.type << std::endl;
+        throw std::runtime_error("Operand isn't register");
     }
 
 }
@@ -85,12 +79,17 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
     int op_count = detail->arm64.op_count;
     cs_arm64_op *operands = detail->arm64.operands;
 
-    std::cout << this_insn.mnemonic << "\n";
+    std::cout << (this_insn.mnemonic) << "\n";
+
+    // ARITHMETIC
     if (strcmp(this_insn.mnemonic, "add") == 0 || strcmp(this_insn.mnemonic, "adds") == 0) {
         return new Add(create_register(operands[0], handle),
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "adds") == 0);
-
+//    } else if (strcmp(this_insn.mnemonic, "cmp") == 0) {
+//        return new Add(create_register(operands[0], handle),
+//                       create_register(operands[1], handle),
+//                       create_operand(operands[2], handle), true);
     } else if (strcmp(this_insn.mnemonic, "sub") == 0 || strcmp(this_insn.mnemonic, "subs") == 0) {
         return new Sub(create_register(operands[0], handle),
                        create_register(operands[1], handle),
@@ -100,6 +99,8 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
         return new Sub(&EmptyRegister::emptyRegister, create_register(operands[0], handle),
                        create_operand(operands[1], handle), true);
 
+
+        // LOGICAL
     } else if (strcmp(this_insn.mnemonic, "lsl") == 0) {
         return new Lsl(create_register(operands[0], handle),
                        create_register(operands[1], handle),
@@ -110,16 +111,70 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle));
 
+        // MOV
     } else if (strcmp(this_insn.mnemonic, "movz") == 0) {
         return new Mov(create_register(operands[0], handle),
                        create_operand(operands[1], handle));
 
+        // BRANCHES
+    } else if (strcmp(this_insn.mnemonic, "b") == 0) {
+        return new B(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.eq") == 0) {
+        return new Beq(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.ne") == 0) {
+        return new Bne(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.hs") == 0) {
+        return new Bhs(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.lo") == 0) {
+        return new Blo(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.hi") == 0) {
+        return new Bhi(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.ls") == 0) {
+        return new Bls(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.ge") == 0) {
+        return new Bge(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.lt") == 0) {
+        return new Blt(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.gt") == 0) {
+        return new Bgt(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.le") == 0) {
+        return new Ble(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.mi") == 0) {
+        return new Bmi(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.pl") == 0) {
+        return new Bpl(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.vs") == 0) {
+        return new Bvs(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.vc") == 0) {
+        return new Bvc(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.al") == 0) {
+        return new Bal(create_operand(operands[0], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "b.nv") == 0) {
+        return new Bnv(create_operand(operands[0], handle));
+
+        // OTHER
     } else {
         return new Ret(); // currently using for any instructions that haven't been added
     }
 }
 
-int main() {
+int main(int argc, char **argv) {
 
     csh handle;
     cs_insn *insn;
@@ -127,7 +182,19 @@ int main() {
     cs_regs regs_read, regs_write;
     uint8_t read_count, write_count;
 
-    disassemble_cs(&handle, &insn, &count); // disassembler
+    if (argc != 2) {
+        std::cout << "Usage: " << argv[0] << " <elf_file>" << std::endl;
+        return 1;
+    }
+
+    elf_read reader(argv[1]);
+
+    for (int i = 0; i < reader.length; i++) {
+        std::cout << (int)reader.data[i] << " ";
+    }
+    std::cout << "\n";
+
+    disassemble_cs(&handle, &insn, &count, reader); // disassembler
     uint8_t d = 8;
     uint8_t g = pow(2, 8) - 1;
     uint8_t f = d + g;
@@ -179,12 +246,14 @@ int main() {
 
     int oldPc;
 
-    while (Register::pc.get() / 4 < count - 1) {
+    while (Register::pc.get() / 4 < count - 1) { // divide by 4 may need to change depending on offset
         oldPc = Register::pc.get();
-        std::cout << oldPc;
+        std::cout << "PC: " << oldPc << "\n";
         Register::pc.set(oldPc + 4);
         instructions[oldPc / 4]->run();
     }
+
+    std::cout << "PC: " << oldPc << " " << Register::pc.get() << "\n";
 
     std::cout << "\nresult (w0, w1, w2 value): " << Register::registers[0].get() << " " << Register::registers[1].get()
               << " " << Register::registers[2].get();

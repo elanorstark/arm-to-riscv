@@ -38,10 +38,11 @@ public:
 };
 
 class ProcessState : public Value {
+private:
+    uint64_t value;
 public:
     static std::map<std::string, ProcessState *> names;
 
-    uint64_t value;
 
     uint64_t get() override;
 
@@ -77,8 +78,9 @@ public:
 };
 
 class Const : public Value {
-public:
+private:
     uint64_t value{0};
+public:
 
     explicit Const(uint64_t value);
 

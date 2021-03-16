@@ -1,3 +1,6 @@
 [submodule "capstone"]
 	path = capstone
 	url = https://github.com/aquynh/capstone
+[submodule "ELFIO"]
+	path = ELFIO
+	url = https://github.com/serge1/ELFIO
