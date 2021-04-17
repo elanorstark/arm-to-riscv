@@ -45,7 +45,7 @@ int disassemble_cs(csh *handle, cs_insn **insn,
     if (*count > 0) {
         for (j = 0; j < *count; j++) {
             // Print assembly
-            printf("%X:\t%s\t%s\n", j*4, (*insn)[j].mnemonic, (*insn)[j].op_str);
+            printf("%X:\t%s\t%s\n", j * 4, (*insn)[j].mnemonic, (*insn)[j].op_str);
         }
 
     } else
@@ -86,10 +86,7 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
         return new Add(create_register(operands[0], handle),
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "adds") == 0);
-//    } else if (strcmp(this_insn.mnemonic, "cmp") == 0) {
-//        return new Add(create_register(operands[0], handle),
-//                       create_register(operands[1], handle),
-//                       create_operand(operands[2], handle), true);
+
     } else if (strcmp(this_insn.mnemonic, "sub") == 0 || strcmp(this_insn.mnemonic, "subs") == 0) {
         return new Sub(create_register(operands[0], handle),
                        create_register(operands[1], handle),
@@ -169,8 +166,13 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
         return new Bnv(create_operand(operands[0], handle));
 
         // OTHER
+    } else if (strcmp(this_insn.mnemonic, "ret") == 0) {
+        return new Ret();
+
     } else {
-        return new Ret(); // currently using for any instructions that haven't been added
+        std::cout << this_insn.op_str << std::endl;
+        return new Ret(); // currently using for any instruction that isn't included yet
+
     }
 }
 
@@ -187,10 +189,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    // input includes elf file to use
     elf_read reader(argv[1]);
 
     for (int i = 0; i < reader.length; i++) {
-        std::cout << (int)reader.data[i] << " ";
+        std::cout << (int) reader.data[i] << " ";
     }
     std::cout << "\n";
 
@@ -198,7 +201,7 @@ int main(int argc, char **argv) {
     uint8_t d = 8;
     uint8_t g = pow(2, 8) - 1;
     uint8_t f = d + g;
-    std::cout << ": " << unsigned(f) << "\n";
+//    std::cout << ": " << unsigned(f) << "\n";
 
 /*    std::cout << insn[0].mnemonic << "\n";
     int details_result = cs_regs_access(handle, &insn[0], regs_read, &read_count, regs_write, &write_count);

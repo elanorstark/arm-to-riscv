@@ -32,17 +32,17 @@ int main(int argc, char **argv) {
     std::cout << "Number of sections: " << sec_num << std::endl;
     for (int i = 0; i < sec_num; ++i) {
         const section *psec = reader.sections[i];
-        std::cout << " [" << i << "] "
-                  << psec->get_name()
+        std::cout << " [" << i << "/" << sec_num << "] "
+                  << "\t" << psec->get_name()
                   << "\t"
                   << psec->get_size()
                   << "\t" << psec->get_address()
                   << std::endl;
         // Access section's data
         const char *p = reader.sections[i]->get_data();
-        if (psec->get_name()==".text") {
-            std::cout << (int)p[0] << " " << (int)p[1] << "\n";
-        }
+//        if (psec->get_name()==".text") {
+//            std::cout << (int)p[0] << " " << (int)p[1] << "\n";
+//        }
     }
     // Print ELF file segments info
     Elf_Half seg_num = reader.segments.size();

@@ -126,7 +126,9 @@ void Lsr::run() {
 
 void Branch::run() {
     if (condition()) {
-        std::cout << "Changing pc value from " << Register::pc.contents << " to " << destination->get() << "\n";
+        if(Instruction::debug_mode) {
+            std::cout << "Changing pc value from " << Register::pc.get() << " to " << destination->get() << "\n";
+        }
         Register::pc.set(destination->get());
     }
 }
