@@ -11,13 +11,13 @@ LikeAdd::LikeAdd(Register *d, Register *op1, Value *op2, bool flags) {
 
 void Add::run() {
     if (Instruction::debug_mode) {
-        std::cout << "Running: add " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+        std::cout << "Running: add " << this->destination->type << this->destination->get() << " " << this->op1->type << this->op1->get()
+                  << " " << this->op2->type << this->op2->get()
                   << "\n";
     }
     uint64_t result = this->op1->get() + this->op2->get();
 
     if (update_flags) {
-        std::cout << "???";
         ProcessState::reset();
         // flags:
         // zero: set z
@@ -46,7 +46,8 @@ void Add::run() {
 
 void Sub::run() {
     if (Instruction::debug_mode) {
-        std::cout << "Running: sub " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+        std::cout << "Running: sub " << this->destination->type << this->destination->get() << " " << this->op1->type << this->op1->get()
+                  << " " << this->op2->type << this->op2->get()
                   << "\n";
     }
     uint64_t result = this->op1->get() - this->op2->get();
@@ -72,7 +73,8 @@ void Sub::run() {
 
 void Mul::run() {
     if (Instruction::debug_mode) {
-        std::cout << "Running: mul " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+        std::cout << "Running: mul " << this->destination->type << this->destination->get() << " " << this->op1->type
+                  << this->op1->get() << " " << this->op2->type << this->op2->get()
                   << "\n";
     }
 
@@ -87,7 +89,8 @@ LikeMov::LikeMov(Register *d, Value *op1) {
 
 void Mov::run() {
     if (Instruction::debug_mode) {
-        std::cout << "Running: mov " << this->destination->get() << " " << this->op1->get() << "\n";
+        std::cout << "Running: mov " << this->destination->type << this->destination->get() << " " << this->op1->type
+                  << this->op1->get() << "\n";
     }
     this->destination->set(this->op1->get());
 }
@@ -106,7 +109,8 @@ void Instruction::debug_mode_set(bool mode) {
 
 void Lsl::run() {
     if (Instruction::debug_mode) {
-        std::cout << "Running: lsl " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+        std::cout << "Running: lsl " << this->destination->type << this->destination->get() << " " << this->op1->type
+                  << this->op1->get() << " " << this->op2->type << this->op2->get()
                   << " divide by " << (typeid(*op2) == typeid(*op1) ? 64 : 1) << " "
                   << (this->op2->get()) / (typeid(*op2) == typeid(*op1) ? 64 : 1) << "\n";
     }
@@ -116,7 +120,8 @@ void Lsl::run() {
 
 void Lsr::run() {
     if (Instruction::debug_mode) {
-        std::cout << "Running: lsr " << this->destination->get() << " " << this->op1->get() << " " << this->op2->get()
+        std::cout << "Running: lsr " << this->destination->type << this->destination->get() << " " << this->op1->type
+                  << this->op1->get() << " " << this->op2->type << this->op2->get()
                   << " divide by " << (typeid(*op2) == typeid(*op1) ? 64 : 1) << " "
                   << (this->op2->get()) / (typeid(*op2) == typeid(*op1) ? 64 : 1) << "\n";
     }
@@ -126,8 +131,8 @@ void Lsr::run() {
 
 void Branch::run() {
     if (condition()) {
-        if(Instruction::debug_mode) {
-            std::cout << "Changing pc value from " << Register::pc.get() << " to " << destination->get() << "\n";
+        if (Instruction::debug_mode) {
+            std::cout << "Branch: changing pc value from " << Register::pc.get() << " to " << destination->get() << "\n";
         }
         Register::pc.set(destination->get());
     }

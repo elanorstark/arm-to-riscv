@@ -7,9 +7,9 @@
 
 #include <string>
 
-class elf_read {
+class Elf_read {
 public:
-    elf_read(std::string);
+    Elf_read(std::string);
     char* data;
     uint32_t length;
 };

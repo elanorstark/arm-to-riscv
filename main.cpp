@@ -13,7 +13,7 @@
 #include <cmath>
 #include "Value.h"
 #include "Instruction.h"
-#include "elf_read.h"
+#include "Elf_read.h"
 
 extern "C" {
 #include "capstone/include/capstone/capstone.h"
@@ -29,7 +29,7 @@ extern "C" {
 
 int disassemble_cs(csh *handle, cs_insn **insn,
                    size_t *count,
-                   elf_read &reader) { //, cs_regs *regs_red, cs_regs *regs_write, uint8_t *red_count, uint8_t *write_count) {
+                   Elf_read &reader) {
 
     size_t j;
 
@@ -79,7 +79,7 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
     int op_count = detail->arm64.op_count;
     cs_arm64_op *operands = detail->arm64.operands;
 
-    std::cout << (this_insn.mnemonic) << "\n";
+//    std::cout << (this_insn.mnemonic) << "\n";
 
     // ARITHMETIC
     if (strcmp(this_insn.mnemonic, "add") == 0 || strcmp(this_insn.mnemonic, "adds") == 0) {
@@ -190,12 +190,13 @@ int main(int argc, char **argv) {
     }
 
     // input includes elf file to use
-    elf_read reader(argv[1]);
+    Elf_read reader(argv[1]);
 
-    for (int i = 0; i < reader.length; i++) {
-        std::cout << (int) reader.data[i] << " ";
-    }
-    std::cout << "\n";
+//    for (int i = 0; i < reader.length; i++) {
+//        std::cout << (int) reader.data[i] << " ";
+//    }
+    std::cout << "\n------------\n";
+    std::cout << "Instructions read from input ELF file:\n";
 
     disassemble_cs(&handle, &insn, &count, reader); // disassembler
     uint8_t d = 8;
@@ -237,7 +238,8 @@ int main(int argc, char **argv) {
     Instruction::debug_mode_set(true);
 
     Register::pc.set(0);
-    std::cout << "PC" << Register::pc.get() << "\n";
+    std::cout << "\n---------------\nRunning instructions\n";
+    std::cout << "Starting PC: " << Register::pc.get() << "\n";
 
 
     for (int i = 0; i < count; i++) {
@@ -251,18 +253,16 @@ int main(int argc, char **argv) {
 
     while (Register::pc.get() / 4 < count - 1) { // divide by 4 may need to change depending on offset
         oldPc = Register::pc.get();
-        std::cout << "PC: " << oldPc << "\n";
+        std::cout << "PC: " << oldPc << "\t";
         Register::pc.set(oldPc + 4);
         instructions[oldPc / 4]->run();
     }
 
     std::cout << "PC: " << oldPc << " " << Register::pc.get() << "\n";
 
-    std::cout << "\nresult (w0, w1, w2 value): " << Register::registers[0].get() << " " << Register::registers[1].get()
+    std::cout << "\nResult (w0, w1, w2 values): " << Register::registers[0].get() << " " << Register::registers[1].get()
               << " " << Register::registers[2].get();
 
-/*    // close the file
-    CodeFile.close();*/
 
     cs_close(&handle);
 

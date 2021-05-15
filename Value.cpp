@@ -12,6 +12,7 @@ uint64_t Register::get() {
 
 Register::Register() {
     this->contents = 0;
+    this->type = "Register";
 }
 
 Register Register::registers[31];
@@ -30,6 +31,7 @@ Register Register::sp = Register();
 
 Const::Const(uint64_t value) {
     this->value = value;
+    this->type = "Const";
 }
 
 void Const::set(uint64_t _) {

@@ -9,6 +9,8 @@ public:
     virtual void set(uint64_t) = 0;
 
     virtual uint64_t get() = 0;
+
+    std::string type;
 };
 
 class Register : public Value {

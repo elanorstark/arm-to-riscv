@@ -1,4 +1,4 @@
-#include "memory.h"
+#include "Memory.h"
 
 
 std::unordered_map<uint64_t, std::array<uint64_t, CHUNKSIZE>> Memory::memory;
