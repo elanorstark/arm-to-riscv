@@ -39,22 +39,21 @@ public:
     void set(uint64_t value) override;
 };
 
-class ProcessState : public Value {
+class ProcessState {
 private:
-    uint64_t value;
+    bool value;
 public:
     static std::map<std::string, ProcessState *> names;
 
+    bool get();
 
-    uint64_t get() override;
-
-    void set(uint64_t) override;
+    void set(bool);
 
     ProcessState();
 
-    static uint64_t get_by_name(std::string name);
+    static bool get_by_name(std::string name);
 
-    static void set_by_name(std::string name, uint64_t value);
+    static void set_by_name(std::string name, bool value);
 
     static ProcessState n; // negative
     static ProcessState z; // zero

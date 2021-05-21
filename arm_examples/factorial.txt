@@ -1,0 +1,11 @@
+main:
+        mov     x1, 1
+        mov     x0, x1
+	mov     x2, #1024
+	lsl     x2, x2, #10
+.L2:
+        mul     x0, x0, x1
+        add     x1, x1, 1
+        cmp     x1, x2
+        bne     .L2
+        ret

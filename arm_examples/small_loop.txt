@@ -1,0 +1,7 @@
+movk w2, #1, lsl #20
+
+start:
+sub w2, w2, #1
+cmp w2, #0
+b.ne start
+ret

@@ -3,14 +3,11 @@
 
 
 #include "Value.h"
+#include "capstone/include/capstone/arm64.h"
 
 class Instruction {
 public:
     virtual void run() = 0;
-
-    static bool debug_mode;
-
-    static void debug_mode_set(bool mode);
 
     bool update_flags;
 };
@@ -27,7 +24,10 @@ public:
 class Add : public LikeAdd {
     using LikeAdd::LikeAdd;
 public:
+    unsigned int shiftVal;
+    arm64_shifter shiftType;
     void run() override;
+    void setShift(unsigned int shiftVal, arm64_shifter shiftType);
 };
 
 class Sub : public LikeAdd {
@@ -55,6 +55,24 @@ public:
     void run() override;
 };
 
+class And : public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run() override;
+};
+
+class Orr : public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run() override;
+};
+
+class Eor : public LikeAdd {
+    using LikeAdd::LikeAdd;
+public:
+    void run() override;
+};
+
 class LikeMov : public Instruction {
 public:
     Register *destination;
@@ -67,6 +85,15 @@ class Mov : public LikeMov {
     using LikeMov::LikeMov;
 public:
     void run() override;
+};
+
+class Movk : public LikeMov {
+    using LikeMov::LikeMov;
+public:
+    unsigned int shiftVal;
+    arm64_shifter shiftType;
+    void run() override;
+    void setShift(unsigned int shiftVal, arm64_shifter shiftType);
 };
 
 class Ret : public Instruction {

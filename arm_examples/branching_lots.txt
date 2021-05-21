@@ -1,0 +1,25 @@
+b start
+
+second:
+lsl x1, x1, #2
+cmp x0, x1
+b.le third
+
+first:
+orr x0, x0, #3
+cmp x0, x1
+b.hi second
+b end
+
+third:
+add x0, x0, #13
+b.ne first
+
+start:
+movz x0, #4
+movz x1, #5
+cmp x0, x1
+b.ne first
+
+end:
+ret

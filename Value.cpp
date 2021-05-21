@@ -12,7 +12,7 @@ uint64_t Register::get() {
 
 Register::Register() {
     this->contents = 0;
-    this->type = "Register";
+    this->type = "Reg";
 }
 
 Register Register::registers[31];
@@ -31,7 +31,7 @@ Register Register::sp = Register();
 
 Const::Const(uint64_t value) {
     this->value = value;
-    this->type = "Const";
+    this->type = "Imm";
 }
 
 void Const::set(uint64_t _) {
@@ -66,17 +66,17 @@ std::map<std::string, ProcessState *> ProcessState::names{{"n", &ProcessState::n
 //                                                             {"f", &ProcessState::f},
 //                                                             {"m", &ProcessState::m}};
 
-uint64_t ProcessState::get() {
+bool ProcessState::get() {
     return this->value;
 }
 
 
-void ProcessState::set_by_name(std::string name, uint64_t value) {
+void ProcessState::set_by_name(std::string name, bool value) {
     uint8_t one_bit = 1 & value;
     ProcessState::names[name]->set(one_bit);
 }
 
-uint64_t ProcessState::get_by_name(std::string name) {
+bool ProcessState::get_by_name(std::string name) {
     return ProcessState::names[name]->get();
 }
 
@@ -84,7 +84,7 @@ ProcessState::ProcessState() {
     this->value = 0;
 }
 
-void ProcessState::set(uint64_t value) {
+void ProcessState::set(bool value) {
     this->value = value;
 }
 

@@ -1,4 +1,4 @@
-// from http://elfio.sourceforge.net/elfio.pdf
+// adapted from http://elfio.sourceforge.net/elfio.pdf
 
 #include "Elf_read.h"
 #include <elfio/elfio.hpp>

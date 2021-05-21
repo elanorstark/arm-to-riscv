@@ -1,0 +1,4 @@
+movz x1, #560
+start:
+subs x1, x1, #1
+bne start

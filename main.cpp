@@ -1,12 +1,8 @@
 #include <iostream>
-#include <fstream>
 #include <string>
-#include <utility>
 #include <vector>
-#include <algorithm>
-#include <functional>
 #include <cctype>
-#include <locale>
+#include <chrono>
 
 #include <cstdio>
 #include <cinttypes>
@@ -14,6 +10,7 @@
 #include "Value.h"
 #include "Instruction.h"
 #include "Elf_read.h"
+#include "config.h"
 
 extern "C" {
 #include "capstone/include/capstone/capstone.h"
@@ -57,6 +54,9 @@ int disassemble_cs(csh *handle, cs_insn **insn,
 Register *create_register(cs_arm64_op &operand, const csh *handle) {
     if (operand.type == ARM64_OP_REG) {
         std::string reg_name = cs_reg_name(*handle, operand.reg);
+        if(reg_name=="wzr") {
+            return &EmptyRegister::emptyRegister;
+        }
         int reg_num = std::stoi(reg_name.substr(1, -1));
         return &Register::registers[reg_num];
     } else {
@@ -72,6 +72,7 @@ Value *create_operand(cs_arm64_op &operand, csh *handle) {
     } else if (operand.type == ARM64_OP_IMM) {
         return new Const(operand.imm);
     }
+    throw std::runtime_error("Operand isn't supported");
 }
 
 Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read, csh *handle) {
@@ -83,14 +84,31 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
 
     // ARITHMETIC
     if (strcmp(this_insn.mnemonic, "add") == 0 || strcmp(this_insn.mnemonic, "adds") == 0) {
-        return new Add(create_register(operands[0], handle),
+        Add* instruction = new Add(create_register(operands[0], handle),
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "adds") == 0);
+        if (operands[2].shift.type != ARM64_SFT_INVALID) {
+            instruction->setShift(operands[2].shift.value, operands[2].shift.type);
+        }
+        return instruction;
 
+    } else if (strcmp(this_insn.mnemonic, "cmn") == 0) {
+        Add* instruction = new Add(&EmptyRegister::emptyRegister, create_register(operands[0], handle),
+                       create_operand(operands[1], handle), true);
+
+        if (operands[1].shift.type != ARM64_SFT_INVALID) {
+            instruction->setShift(operands[1].shift.value, operands[1].shift.type);
+        }
+        return instruction;
     } else if (strcmp(this_insn.mnemonic, "sub") == 0 || strcmp(this_insn.mnemonic, "subs") == 0) {
         return new Sub(create_register(operands[0], handle),
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "subs") == 0);
+
+    } else if (strcmp(this_insn.mnemonic, "mul") == 0) {
+        return new Mul(create_register(operands[0], handle),
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle));
 
     } else if (strcmp(this_insn.mnemonic, "cmp") == 0) {
         return new Sub(&EmptyRegister::emptyRegister, create_register(operands[0], handle),
@@ -108,13 +126,40 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
                        create_register(operands[1], handle),
                        create_operand(operands[2], handle));
 
+    } else if ((strcmp(this_insn.mnemonic, "and") == 0) || strcmp(this_insn.mnemonic, "ands") == 0) {
+        return new And(create_register(operands[0], handle),
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle), strcmp(this_insn.mnemonic, "ands") == 0);
+
+    } else if (strcmp(this_insn.mnemonic, "orr") == 0) {
+        return new Orr(create_register(operands[0], handle),
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "eor") == 0) {
+        return new Eor(create_register(operands[0], handle),
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle));
+
+    } else if (strcmp(this_insn.mnemonic, "tst") == 0) {
+        return new And(&EmptyRegister::emptyRegister,
+                       create_register(operands[1], handle),
+                       create_operand(operands[2], handle), true);
+
         // MOV
-    } else if (strcmp(this_insn.mnemonic, "movz") == 0) {
+    } else if (strcmp(this_insn.mnemonic, "mov") == 0 || strcmp(this_insn.mnemonic, "movz") == 0) {
         return new Mov(create_register(operands[0], handle),
                        create_operand(operands[1], handle));
 
         // BRANCHES
-    } else if (strcmp(this_insn.mnemonic, "b") == 0) {
+    } else if (strcmp(this_insn.mnemonic, "movk") == 0) {
+        Movk* instruction = new Movk(create_register(operands[0], handle),
+                       create_operand(operands[1], handle));
+        instruction->setShift(operands[1].shift.value, operands[1].shift.type);
+        return instruction;
+
+        // BRANCHES
+    } else if (strcmp(this_insn.mnemonic, "b") == 0 | strcmp(this_insn.mnemonic, "br") == 0) {
         return new B(create_operand(operands[0], handle));
 
     } else if (strcmp(this_insn.mnemonic, "b.eq") == 0) {
@@ -170,9 +215,7 @@ Instruction *create_instruction(cs_insn &this_insn, int line, cs_regs &regs_read
         return new Ret();
 
     } else {
-        std::cout << this_insn.op_str << std::endl;
-        return new Ret(); // currently using for any instruction that isn't included yet
-
+        throw std::runtime_error("Instruction isn't supported");
     }
 }
 
@@ -235,11 +278,9 @@ int main(int argc, char **argv) {
 
     Instruction **instructions = new Instruction *[count];
 
-    Instruction::debug_mode_set(true);
-
     Register::pc.set(0);
     std::cout << "\n---------------\nRunning instructions\n";
-    std::cout << "Starting PC: " << Register::pc.get() << "\n";
+    if(DEBUG) std::cout << "Starting PC: " << Register::pc.get() << "\n";
 
 
     for (int i = 0; i < count; i++) {
@@ -249,20 +290,31 @@ int main(int argc, char **argv) {
 //        instructions[i]->run();
     }
 
-    int oldPc;
+    int oldPc, totalInstructions = 0;
+    std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::high_resolution_clock::now();
 
-    while (Register::pc.get() / 4 < count - 1) { // divide by 4 may need to change depending on offset
+    while (Register::pc.get() / 4 < count) { // divide by 4 may need to change depending on offset
+        totalInstructions++;
         oldPc = Register::pc.get();
-        std::cout << "PC: " << oldPc << "\t";
+        if (DEBUG) std::cout << "PC: " << oldPc << "\t";
         Register::pc.set(oldPc + 4);
         instructions[oldPc / 4]->run();
     }
 
-    std::cout << "PC: " << oldPc << " " << Register::pc.get() << "\n";
+    std::chrono::time_point<std::chrono::steady_clock> end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "\nResult (w0, w1, w2 values): " << Register::registers[0].get() << " " << Register::registers[1].get()
-              << " " << Register::registers[2].get();
+    if (DEBUG) {
+        std::cout << "PC: " << oldPc << " " << Register::pc.get() << "\n";
+    }
 
+    long long ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "\nResult (x0, x1, x2 values): "
+              << Register::registers[0].get() << " "
+              << Register::registers[1].get() << " "
+              << Register::registers[2].get() << std::endl
+              << "Time taken " << (double)ns / 1000000.0 << "ms" << std::endl
+              << "Total instructions " << totalInstructions << std::endl
+              << "Instructions/second " << (totalInstructions / ((double) ns / 1000000000.0)) << std::endl;
 
     cs_close(&handle);
 
